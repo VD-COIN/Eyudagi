@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quiz Application</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1s ease-in-out;
+        }
+        .hidden {
+            display: none;
+        }
+        .welcome, .quiz-container, .result-container, .video-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+        .welcome {
+            font-size: 2em;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 300px;
+            color: white;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .question {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .answers {
+            list-style: none;
+            padding: 0;
+        }
+        .answers li {
+            margin-bottom: 10px;
+        }
+        .answers button {
+            background: #007bff;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            width: 100%;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .answers button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result-container h1 {
+            font-size: 2em;
+        }
+        .background1 {
+            background-image: url('image1.jpg');
+            opacity: 1;
+        }
+        .background2 {
+            background-image: url('image2.jpg');
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background images with sliding effect -->
+    <div id="background1" class="background background1"></div>
+    <div id="background2" class="background background2"></div>
+
+    <!-- Welcome page -->
+    <div id="welcome" class="welcome">
+        <div>
+            <p>እንኳን ወደ ኢዩዳጊ መተግበሪያ በደህና መጡ!!!</p>
+            <button onclick="startQuiz()">እንጀምር</button>
+        </div>
+    </div>
+
+    <!-- Quiz page -->
+    <div id="quiz" class="quiz-container">
+        <div class="container">
+            <h1>Quiz Game</h1>
+            <div class="question" id="question"></div>
+            <ul class="answers" id="options"></ul>
+            <div class="result" id="score"></div>
+            <button id="next-btn" onclick="nextQuestion()">ቀጣይ</button>
+            <button id="finish-btn" onclick="finishQuiz()" class="hidden">Finish</button>
+        </div>
+    </div>
+
+    <!-- Result page -->
+    <div id="result" class="result-container">
+        <div id="result-text"></div>
+        <button id="show-movie-btn" onclick="showMovie()" class="hidden">የተለያዩ ፊልም ይማረኩልኝ</button>
+        <button onclick="backToWelcome()">እንደገና ወደ መግቢያ ግባ</button>
+    </div>
+
+    <!-- Video player -->
+    <div id="video" class="video-container">
+        <video id="movie" width="600" controls>
+            <source src="movie.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <button onclick="backToWelcome()">እንደገና ወደ መግቢያ ግባ</button>
+    </div>
+
+    <script>
+        let questions = [
+            { question: '23+78 ስንት ነው....?', options: ['89', '101', '111'], answer: 1 },
+            { question: '56+14 ስንት ነው....?', options: ['70', '89', '11'], answer: 0 },
+            { question: '243+718 ስንት ነው....?', options: ['899', '961', '1110'], answer: 1 },
+            { question: '121+78 ስንት ነው....?', options: ['169', '234', '199'], answer: 2 },
+            { question: '69+78 ስንት ነው....?', options: ['89', '137', '111'], answer: 1 },
+            { question: '69-18 ስንት ነው....?', options: ['51', '37', '61'], answer: 0 },
+            { question: '1629-378 ስንት ነው....?', options: ['1089', '1307', '1251'], answer: 2 },
+            { question: '679-178 ስንት ነው....?', options: ['501', '637', '711'], answer: 0 },
+            { question: '0+78-56+45+1 ስንት ነው....?', options: ['68', '17', '81'], answer: 0 },
+            { question: '10000+1000 ስንት ነው....?', options: ['100000', '11000', '111000'], answer: 1 }
+        ];
+        let currentQuestion = 0;
+        let score = 0;
+
+        function startQuiz() {
+            document.getElementById('welcome').style.display = 'none';
+            document.getElementById('quiz').style.display = 'flex';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            let q = questions[currentQuestion];
+            document.getElementById('question').innerText = q.question;
+            let optionsHtml = q.options.map((opt, index) =>
+                `<li><button onclick="answerQuestion(${index})">${opt}</button></li>`
+            ).join('');
+            document.getElementById('options').innerHTML = optionsHtml;
+
+            document.getElementById('next-btn').style.display = currentQuestion === questions.length - 1 ? 'none' : 'inline';
+            document.getElementById('finish-btn').style.display = currentQuestion === questions.length - 1 ? 'inline' : 'none';
+        }
+
+        function answerQuestion(selected) {
+            if (selected === questions[currentQuestion].answer) score++;
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz').style.display = 'none';
+            let resultText = score >= 5 ?
+                'በጣም ጥሩ ነው !!' :
+                'በሚያሳዝን ሁኔታ ፈተናውን ወድቀዋል, በድጋሚ ያጥኑ!!!';
+            document.getElementById('result-text').innerText = resultText;
+            document.getElementById('result').style.display = 'flex';
+            document.getElementById('result').style.backgroundImage = `url(${score >= 5 ? 'above.jpg' : 'Below.jpg'})`;
+            document.getElementById('show-movie-btn').style.display = score >= 5 ? 'inline' : 'none';
+        }
+
+        function showMovie() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('video').style.display = 'flex';
+   
+   
+   
+            let movie = document.getElementById('movie');
+            movie.play();
+            movie.onended = () => {
+                backToWelcome();
+            };
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function backToWelcome() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('video').style.display = 'none';
+            document.getElementById('welcome').style.display = 'flex';
+            loadBackground();
+        }
+
+        function loadBackground() {
+            const bg1 = document.getElementById('background1');
+            const bg2 = document.getElementById('background2');
+            setInterval(() => {
+                if (bg1.style.opacity === '1') {
+                    bg1.style.opacity = '0';
+                    bg2.style.opacity = '1';
+                } else {
+                    bg1.style.opacity = '1';
+                    bg2.style.opacity = '0';
+                }
+            }, 5000);
+        }
+
+        window.onload = function() {
+            loadBackground();
+        }
+    </script>
+</body>
+</html>
+            
+            
+            
+            
+            
